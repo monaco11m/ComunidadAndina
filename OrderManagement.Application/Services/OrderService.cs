@@ -3,6 +3,7 @@ using OrderManagement.Application.Events;
 using OrderManagement.Application.Exceptions;
 using OrderManagement.Application.Interfaces;
 using OrderManagement.Domain.Entities;
+using OrderManagement.Domain.Enums;
 
 namespace OrderManagement.Application.Services
 {
@@ -58,22 +59,7 @@ namespace OrderManagement.Application.Services
             if (order == null)
                 throw new NotFoundException($"Order with id {id} not found.");
 
-            return new OrderDto
-            {
-                Id = order.Id,
-                OrderNumber = order.OrderNumber,
-                CustomerName = order.CustomerName,
-                CustomerEmail = order.CustomerEmail,
-                OrderDate = order.OrderDate,
-                Status = order.Status.ToString(),
-                TotalAmount = order.TotalAmount,
-                Items = order.OrderItems.Select(i => new OrderItemDto
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice
-                }).ToList()
-            };
+            return MapOrder(order);
         }
 
         public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
@@ -100,6 +86,49 @@ namespace OrderManagement.Application.Services
                 }).ToList()
             });
         }
+
+        public async Task<OrderDto> CancelOrderAsync(Guid id)
+        {
+            var order = await _unitOfWork.Orders.GetByIdAsync(id);
+
+            if (order == null)
+                throw new NotFoundException($"Order with id {id} not found.");
+
+            if (order.Status == OrderStatus.Completed)
+                throw new DomainValidationException(new[] { "Completed orders cannot be cancelled." });
+
+            if (order.Status == OrderStatus.Cancelled)
+                throw new DomainValidationException(new[] { "Order is already cancelled." });
+
+            order.Status = OrderStatus.Cancelled;
+
+            await _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.CommitAsync();
+
+            return MapOrder(order);
+        }
+
+        private OrderDto MapOrder(Order order)
+        {
+
+            return new OrderDto
+            {
+                Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                CustomerName = order.CustomerName,
+                CustomerEmail = order.CustomerEmail,
+                OrderDate = order.OrderDate,
+                Status = order.Status.ToString(),
+                TotalAmount = order.TotalAmount,
+                Items = order.OrderItems.Select(i => new OrderItemDto
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            };
+        }
+
 
     }
 }

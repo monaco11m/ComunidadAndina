@@ -7,7 +7,7 @@ namespace OrderManagement.Application.Interfaces
         Task<Order?> GetByIdAsync(Guid id);
         Task<IEnumerable<Order>> GetAllAsync();
         Task AddAsync(Order order);
-        void Update (Order order);
+        Task UpdateAsync (Order order);
         void Delete(Order order);
     }
 }

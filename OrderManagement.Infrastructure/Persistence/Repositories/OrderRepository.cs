@@ -38,9 +38,10 @@ namespace OrderManagement.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
-        public void Update(Order order)
+        public async Task UpdateAsync(Order order)
         {
             _context.Orders.Update(order);
+            await Task.CompletedTask;
         }
     }
 }

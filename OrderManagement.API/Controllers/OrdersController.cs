@@ -55,6 +55,18 @@ namespace OrderManagement.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Cancelar pedido por Id
+        /// </summary>
+        /// <param name="id">Id del pedido</param>
+        [HttpPut("{id:guid}/cancel")]
+        public async Task<IActionResult> CancelOrder(Guid id)
+        {
+            var updatedOrder = await _orderService.CancelOrderAsync(id);
+            return Ok(updatedOrder);
+        }
+
+
 
     }
 }
