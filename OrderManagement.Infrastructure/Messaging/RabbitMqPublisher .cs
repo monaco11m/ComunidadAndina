@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using OrderManagement.Application.Events;
 using OrderManagement.Application.Interfaces;
 using RabbitMQ.Client;
@@ -10,20 +11,20 @@ namespace OrderManagement.Infrastructure.Messaging
 {
     public class RabbitMqPublisher : IMessagePublisher
     {
-        private readonly IConfiguration _config;
+        private readonly RabbitMqSettings _settings;
 
-        public RabbitMqPublisher(IConfiguration config)
+        public RabbitMqPublisher(IOptions<RabbitMqSettings> settings)
         {
-            _config = config;
+            _settings = settings.Value;
         }
 
         public Task PublishAsync(OrderCreatedEvent evt)
         {
             var factory = new ConnectionFactory()
             {
-                HostName = _config["RabbitMQ:Host"],
-                UserName = _config["RabbitMQ:Username"],
-                Password = _config["RabbitMQ:Password"]
+                HostName = _settings.Host,
+                UserName = _settings.Username,
+                Password = _settings.Password
             };
 
             using var connection = factory.CreateConnection();

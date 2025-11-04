@@ -1,23 +1,25 @@
-﻿using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using OrderManagement.Application.Events;
 using OrderManagement.Infrastructure.Services;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using Serilog;
+using System.Text;
+using System.Text.Json;
 
 namespace OrderManagement.Infrastructure.Messaging
 {
     public class RabbitMqConsumerService : BackgroundService
     {
-        private readonly IConfiguration _config;
         private readonly EmailService _emailService;
+        private readonly RabbitMqSettings _settings;
+        private IConnection? _connection;
+        private IModel? _channel;
 
-        public RabbitMqConsumerService(IConfiguration config, EmailService emailService)
+        public RabbitMqConsumerService(IOptions<RabbitMqSettings> settings, EmailService emailService)
         {
-            _config = config;
+            _settings = settings.Value;
             _emailService = emailService;
         }
 
@@ -25,21 +27,48 @@ namespace OrderManagement.Infrastructure.Messaging
         {
             var factory = new ConnectionFactory()
             {
-                HostName = _config["RabbitMQ:Host"],
-                UserName = _config["RabbitMQ:Username"],
-                Password = _config["RabbitMQ:Password"]
+                HostName = _settings.Host,
+                Port = _settings.Port,
+                UserName = _settings.Username,
+                Password = _settings.Password
             };
 
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
+            int retries = 8;
+            while (retries > 0 && !stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    _connection = factory.CreateConnection(new List<AmqpTcpEndpoint>
+                    {
+                        new AmqpTcpEndpoint(_settings.Host, _settings.Port)
+                    });
 
-            channel.QueueDeclare(queue: "order-created-queue",
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
+                    break; 
+                }
+                catch (Exception ex)
+                {
+                    retries--;
+                    Log.Warning("RabbitMQ no ready yet ({Message}). Trying again... ({Retries} tries left)", ex.Message, retries);
+                    await Task.Delay(3000, stoppingToken);
+                }
+            }
 
-            var consumer = new EventingBasicConsumer(channel);
+            if (_connection == null)
+            {
+                Log.Error("Not possible to connect after 8 chances.");
+                return;
+            }
+
+            _channel = _connection.CreateModel();
+
+            _channel.QueueDeclare(
+                queue: "order-created-queue",
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            var consumer = new EventingBasicConsumer(_channel);
 
             consumer.Received += async (sender, e) =>
             {
@@ -49,7 +78,7 @@ namespace OrderManagement.Infrastructure.Messaging
 
                 if (orderEvent != null)
                 {
-                    Log.Information("Received message from RabbitMQ for Order {OrderId}", orderEvent.OrderId);
+                    Log.Information("Message received for order {OrderId}", orderEvent.OrderId);
 
                     await _emailService.SendOrderConfirmationEmailAsync(
                         orderEvent.CustomerEmail,
@@ -58,18 +87,25 @@ namespace OrderManagement.Infrastructure.Messaging
                         orderEvent.TotalAmount
                     );
 
-                    Log.Information("Confirmation email sent to {Email}", orderEvent.CustomerEmail);
+                    Log.Information("Email sent to {Email}", orderEvent.CustomerEmail);
                 }
             };
 
-            channel.BasicConsume(queue: "order-created-queue", autoAck: true, consumer: consumer);
+            _channel.BasicConsume(
+                queue: "order-created-queue",
+                autoAck: true,
+                consumer: consumer);
 
-            Log.Information("RabbitMQ consumer started. Listening to order-created-queue...");
+            Log.Information("RabbitMQ Consumer ready...");
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(1000, stoppingToken);
-            }
+            await Task.Delay(Timeout.Infinite, stoppingToken);
+        }
+
+        public override void Dispose()
+        {
+            _channel?.Close();
+            _connection?.Close();
+            base.Dispose();
         }
     }
 }

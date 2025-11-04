@@ -44,6 +44,11 @@ namespace OrderManagement.API
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+
+            builder.Services.Configure<RabbitMqSettings>(
+            builder.Configuration.GetSection("RabbitMQ"));
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
