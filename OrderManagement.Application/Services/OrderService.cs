@@ -1,5 +1,6 @@
 ﻿using OrderManagement.Application.DTOs;
 using OrderManagement.Application.Events;
+using OrderManagement.Application.Exceptions;
 using OrderManagement.Application.Interfaces;
 
 namespace OrderManagement.Application.Services
@@ -23,10 +24,10 @@ namespace OrderManagement.Application.Services
             {
                 var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
                 if (product == null)
-                    throw new Exception($"Product with id {item.ProductId} not found.");
+                    throw new NotFoundException($"Product with id {item.ProductId} not found.");
 
                 if (product.Stock < item.Quantity)
-                    throw new Exception($"Insufficient stock for {product.Name}.");
+                    throw new ValidationException(new[] { $"Insufficient stock for product {product.Name}." });
 
                 product.Stock -= item.Quantity;
                 await _unitOfWork.Products.UpdateAsync(product);

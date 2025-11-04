@@ -1,6 +1,7 @@
 
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using OrderManagement.API.Middlewares;
 using OrderManagement.Application.Factories;
 using OrderManagement.Application.Interfaces;
 using OrderManagement.Application.Services;
@@ -19,7 +20,8 @@ namespace OrderManagement.API
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Host.UseSerilog((context, config) =>
-            config.ReadFrom.Configuration(context.Configuration));
+            config.ReadFrom.Configuration(context.Configuration)
+            .WriteTo.Console());
 
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
@@ -34,7 +36,7 @@ namespace OrderManagement.API
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderValidator>();
 
-
+            
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -50,6 +52,8 @@ namespace OrderManagement.API
 
 
             var app = builder.Build();
+
+            app.UseErrorHandlingMiddleware();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

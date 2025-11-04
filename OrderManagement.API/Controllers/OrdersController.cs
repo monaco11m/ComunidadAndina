@@ -23,20 +23,8 @@ namespace OrderManagement.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
         {
-            var validationResult = await _validator.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-                return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-
-            try
-            {
-                var orderId = await _orderService.CreateOrderAsync(dto);
-
-                return CreatedAtAction(nameof(GetOrderById), new { id = orderId }, new { orderId });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var orderId = await _orderService.CreateOrderAsync(dto);
+            return CreatedAtAction(nameof(GetOrderById), new { id = orderId }, new { orderId });
         }
 
         /// <summary>
