@@ -35,7 +35,8 @@ namespace OrderManagement.API.Controllers
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetOrderById(Guid id)
         {
-            return Ok(new { message = $"GET /api/orders/{id}" });
+            var result = await _orderService.GetByIdAsync(id);
+            return Ok(result);
         }
     }
 }

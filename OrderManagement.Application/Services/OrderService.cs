@@ -49,5 +49,31 @@ namespace OrderManagement.Application.Services
 
             return order.Id;
         }
+
+        public async Task<OrderDto?> GetByIdAsync(Guid id)
+        {
+            var order = await _unitOfWork.Orders.GetByIdAsync(id);
+
+            if (order == null)
+                throw new NotFoundException($"Order with id {id} not found.");
+
+            return new OrderDto
+            {
+                Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                CustomerName = order.CustomerName,
+                CustomerEmail = order.CustomerEmail,
+                OrderDate = order.OrderDate,
+                Status = order.Status.ToString(),
+                TotalAmount = order.TotalAmount,
+                Items = order.OrderItems.Select(i => new OrderItemDto
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            };
+        }
+
     }
 }
