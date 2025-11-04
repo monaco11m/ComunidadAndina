@@ -5,6 +5,7 @@ using OrderManagement.Application.Services;
 
 namespace OrderManagement.API.Controllers
 {
+    [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
         private readonly OrderService _orderService;

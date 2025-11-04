@@ -1,5 +1,6 @@
 ﻿
 
+using Microsoft.EntityFrameworkCore;
 using OrderManagement.Application.Interfaces;
 using OrderManagement.Domain.Entities;
 
@@ -7,24 +8,33 @@ namespace OrderManagement.Infrastructure.Persistence.Repositories
 {
     public class ProductRepository : IProductRepository
     {
-        public Task<bool> ExistsAsync(Guid id)
+        private readonly AppDbContext _context;
+        public ProductRepository(AppDbContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            throw new NotImplementedException();
+            return await _context.Products.AnyAsync(p => p.Id == id);
         }
 
-        public Task<Product?> GetByIdAsync(Guid id)
+        public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Products
+                .ToListAsync();
+        }
+
+        public async Task<Product?> GetByIdAsync(Guid id)
+        {
+            return await _context.Products
+                .FirstOrDefaultAsync(o => o.Id == id);
         }
 
         public Task UpdateAsync(Product product)
         {
-            throw new NotImplementedException();
+            _context.Products.Update(product);
+            return Task.CompletedTask;
         }
     }
 }

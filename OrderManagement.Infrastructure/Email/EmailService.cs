@@ -29,7 +29,7 @@ namespace OrderManagement.Infrastructure.Services
                 EnableSsl = false
             };
 
-            string templatePath = Path.Combine(AppContext.BaseDirectory, "Services", "EmailTemplate.html");
+            string templatePath = Path.Combine(AppContext.BaseDirectory, "Email", "EmailTemplate.html");
             string htmlBody = await File.ReadAllTextAsync(templatePath);
 
             htmlBody = htmlBody

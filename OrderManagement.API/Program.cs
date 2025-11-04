@@ -16,7 +16,7 @@ namespace OrderManagement.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +73,17 @@ namespace OrderManagement.API
 
 
             app.MapControllers();
+
+
+            //seed data
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<AppDbContext>();
+
+                await context.Database.MigrateAsync();
+                await SeedData.InitializeAsync(context);
+            }
 
             app.Run();
         }

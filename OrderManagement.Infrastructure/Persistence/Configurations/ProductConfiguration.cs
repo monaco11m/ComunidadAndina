@@ -20,7 +20,7 @@ namespace OrderManagement.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.Price)
             .IsRequired()
-            .HasColumnType("decimal(18,2");
+            .HasColumnType("decimal(18,2)");
 
             builder.Property(p => p.Stock)
             .IsRequired();
