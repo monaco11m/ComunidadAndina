@@ -1,0 +1,52 @@
+﻿using OrderManagement.Application.DTOs;
+using OrderManagement.Application.Events;
+using OrderManagement.Application.Interfaces;
+
+namespace OrderManagement.Application.Services
+{
+    public class OrderService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMessagePublisher _publisher;
+        private readonly IOrderFactory _factory;
+
+        public OrderService(IUnitOfWork unitOfWork, IMessagePublisher publisher, IOrderFactory factory)
+        {
+            _unitOfWork = unitOfWork;
+            _publisher = publisher;
+            _factory = factory;
+        }
+
+        public async Task<Guid> CreateOrderAsync(CreateOrderDto dto)
+        {
+            foreach (var item in dto.Items)
+            {
+                var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                if (product == null)
+                    throw new Exception($"Product with id {item.ProductId} not found.");
+
+                if (product.Stock < item.Quantity)
+                    throw new Exception($"Insufficient stock for {product.Name}.");
+
+                product.Stock -= item.Quantity;
+                await _unitOfWork.Products.UpdateAsync(product);
+            }
+
+            var order = _factory.CreateOrder(dto);
+
+            await _unitOfWork.Orders.AddAsync(order);
+            await _unitOfWork.CommitAsync();
+
+            var evt = new OrderCreatedEvent
+            {
+                OrderId = order.Id,
+                CustomerEmail = order.CustomerEmail,
+                CustomerName = order.CustomerName,
+                TotalAmount = order.TotalAmount
+            };
+            await _publisher.PublishAsync(evt);
+
+            return order.Id;
+        }
+    }
+}

@@ -1,4 +1,15 @@
 
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using OrderManagement.Application.Factories;
+using OrderManagement.Application.Interfaces;
+using OrderManagement.Application.Services;
+using OrderManagement.Application.Validators;
+using OrderManagement.Infrastructure.Messaging;
+using OrderManagement.Infrastructure.Persistence;
+using OrderManagement.Infrastructure.Persistence.Repositories;
+using Serilog;
+
 namespace OrderManagement.API
 {
     public class Program
@@ -7,12 +18,36 @@ namespace OrderManagement.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Host.UseSerilog((context, config) =>
+            config.ReadFrom.Configuration(context.Configuration));
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+            //DIP
+
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IOrderFactory, OrderFactory>();
+            builder.Services.AddScoped<IMessagePublisher, RabbitMqPublisher>();
+            builder.Services.AddScoped<OrderService>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderValidator>();
+
+
             // Add services to the container.
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddCors(opt =>
+            {
+                opt.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            });
+
+
 
             var app = builder.Build();
 
@@ -22,6 +57,8 @@ namespace OrderManagement.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();
 
