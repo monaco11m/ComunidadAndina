@@ -1,0 +1,120 @@
+# Build folders
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Bb]uild/
+artifacts/
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Dotnet tools
+dotnet-tools.json
+
+# NCrunch
+*.ncrunchsolution
+*.ncrunchproject
+_ncrunch_*
+
+# NuGet packages
+*.nupkg
+*.snupkg
+*.nuspec
+**/packages/*
+!**/packages/build/
+*.nuspec
+
+# Backup and temporary files
+*.tmp
+*.bak
+*.swp
+*.cache
+*.dbmdl
+*.bak
+*.old
+*.orig
+
+# User-specific files
+*.rsuser
+*.userprefs
+*.sln.docstates
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Configuration files
+appsettings.Development.json
+appsettings.Local.json
+
+# Logs
+*.log
+logs/
+log/
+
+# Coverage & Testing
+coverage/
+coverage-report/
+TestResults/
+*.coverage
+*.coveragexml
+*.codecov
+*.opencover.xml
+
+# Docker
+docker-compose.override.yml
+**/Dockerfile.*
+**/docker-compose*.yml
+!.dockerignore
+
+# Cache folders
+.cache/
+*.pidb
+*.svclog
+*.aps
+_ReSharper*/
+*.DotSettings.user
+
+# Node / Frontend assets (if frontend folder exists)
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
+
+# Database local files
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Publish output
+publish/
+*.Publish.xml
+*.pubxml
+*.pubxml.user
