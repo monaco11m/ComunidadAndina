@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Serilog;
 using System.Text.Json;
-using OrderManagement.API.Exceptions;
 using OrderManagement.Application.Exceptions;
 
 namespace OrderManagement.API.Middlewares

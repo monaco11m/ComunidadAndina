@@ -9,6 +9,7 @@ using OrderManagement.Application.Validators;
 using OrderManagement.Infrastructure.Messaging;
 using OrderManagement.Infrastructure.Persistence;
 using OrderManagement.Infrastructure.Persistence.Repositories;
+using OrderManagement.Infrastructure.Services;
 using Serilog;
 
 namespace OrderManagement.API
@@ -35,8 +36,10 @@ namespace OrderManagement.API
             builder.Services.AddScoped<IMessagePublisher, RabbitMqPublisher>();
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderValidator>();
+            builder.Services.AddSingleton<EmailService>();
+            builder.Services.AddHostedService<RabbitMqConsumerService>();
 
-            
+
             // Add services to the container.
 
             builder.Services.AddControllers();
