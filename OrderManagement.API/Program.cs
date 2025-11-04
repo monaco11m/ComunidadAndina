@@ -35,6 +35,7 @@ namespace OrderManagement.API
             builder.Services.AddScoped<IOrderFactory, OrderFactory>();
             builder.Services.AddScoped<IMessagePublisher, RabbitMqPublisher>();
             builder.Services.AddScoped<OrderService>();
+            builder.Services.AddScoped<ProductService>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderValidator>();
             builder.Services.AddSingleton<EmailService>();
             builder.Services.AddHostedService<RabbitMqConsumerService>();

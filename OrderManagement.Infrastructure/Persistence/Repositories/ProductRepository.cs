@@ -22,6 +22,7 @@ namespace OrderManagement.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             return await _context.Products
+                .AsNoTracking()
                 .ToListAsync();
         }
 
