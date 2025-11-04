@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Moq;
 using OrderManagement.Application.DTOs;
+using OrderManagement.Application.Exceptions;
 using OrderManagement.Application.Interfaces;
 using OrderManagement.Application.Services;
 using OrderManagement.Domain.Entities;
@@ -64,6 +65,101 @@ namespace OrderManagement.Tests.Services
             _unitOfWorkMock.Verify(u => u.Orders.AddAsync(order), Times.Once);
             result.Should().Be(order.Id);
         }
+
+        [Fact]
+        public async Task CreateOrder_Should_Throw_Exception_When_Stock_Is_Insufficient()
+        {
+            // Arrange
+            var dto = new CreateOrderDto
+            {
+                CustomerName = "Elmer",
+                CustomerEmail = "elmer@test.com",
+                Items = new List<CreateOrderItemDto>
+                {
+                    new() { ProductId = Guid.NewGuid(), Quantity = 10 }
+                }
+            };
+
+            var product = new Product
+            {
+                Id = dto.Items.First().ProductId,
+                Name = "Test Product",
+                Price = 50,
+                Stock = 5 
+            };
+
+            _unitOfWorkMock.Setup(u => u.Products.GetByIdAsync(product.Id))
+                .ReturnsAsync(product);
+
+            _factoryMock.Setup(f => f.CreateOrder(dto))
+                .Returns(new Order());
+
+            // Act
+            Func<Task> act = async () => await _service.CreateOrderAsync(dto);
+
+            // Assert
+            await act.Should().ThrowAsync<DomainValidationException>();
+
+            _unitOfWorkMock.Verify(u => u.Orders.AddAsync(It.IsAny<Order>()), Times.Never);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task CancelOrder_Should_Update_Status_To_Cancelled()
+        {
+            // Arrange
+            var orderId = Guid.NewGuid();
+
+            var order = new Order
+            {
+                Id = orderId,
+                Status = OrderStatus.Pending
+            };
+
+            _unitOfWorkMock.Setup(u => u.Orders.GetByIdAsync(orderId))
+                .ReturnsAsync(order);
+
+            _unitOfWorkMock.Setup(u => u.Orders.UpdateAsync(order))
+                .Returns(Task.CompletedTask);
+
+            _unitOfWorkMock.Setup(u => u.CommitAsync())
+                .ReturnsAsync(1);
+
+            // Act
+            var result = await _service.CancelOrderAsync(orderId);
+
+            // Assert
+            result.Status.Should().Be("Cancelled");
+            _unitOfWorkMock.Verify(u => u.Orders.UpdateAsync(order), Times.Once);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task CancelOrder_Should_Throw_When_Order_Is_Completed()
+        {
+            // Arrange
+            var orderId = Guid.NewGuid();
+
+            var order = new Order
+            {
+                Id = orderId,
+                Status = OrderStatus.Completed
+            };
+
+            _unitOfWorkMock.Setup(u => u.Orders.GetByIdAsync(orderId))
+                .ReturnsAsync(order);
+
+            // Act
+            Func<Task> act = async () => await _service.CancelOrderAsync(orderId);
+
+            // Assert
+            await act.Should().ThrowAsync<DomainValidationException>();
+
+            _unitOfWorkMock.Verify(u => u.Orders.UpdateAsync(It.IsAny<Order>()), Times.Never);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Never);
+        }
+
+
     }
 
 }
