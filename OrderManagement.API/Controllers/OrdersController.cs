@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using OrderManagement.Application.DTOs;
+using OrderManagement.Application.Exceptions;
 using OrderManagement.Application.Services;
 
 namespace OrderManagement.API.Controllers
@@ -24,6 +25,11 @@ namespace OrderManagement.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
         {
+            var validationResult = await _validator.ValidateAsync(dto);
+
+            if (!validationResult.IsValid)
+                throw new DomainValidationException(validationResult.Errors.Select(e => e.ErrorMessage));
+
             var orderId = await _orderService.CreateOrderAsync(dto);
             return CreatedAtAction(nameof(GetOrderById), new { id = orderId }, new { orderId });
         }

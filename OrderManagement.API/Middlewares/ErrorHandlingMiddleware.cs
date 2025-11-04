@@ -39,7 +39,7 @@ namespace OrderManagement.API.Middlewares
                     errorResponse = new { message = notFound.Message };
                     break;
 
-                case ValidationException validation:
+                case DomainValidationException validation:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = validation.Message, errors = validation.Errors };
                     break;

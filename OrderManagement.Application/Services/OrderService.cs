@@ -28,7 +28,7 @@ namespace OrderManagement.Application.Services
                     throw new NotFoundException($"Product with id {item.ProductId} not found.");
 
                 if (product.Stock < item.Quantity)
-                    throw new ValidationException(new[] { $"Insufficient stock for product {product.Name}." });
+                    throw new DomainValidationException(new[] { $"Insufficient stock for product {product.Name}." });
 
                 product.Stock -= item.Quantity;
                 await _unitOfWork.Products.UpdateAsync(product);
