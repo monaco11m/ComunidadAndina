@@ -38,5 +38,17 @@ namespace OrderManagement.API.Controllers
             var result = await _orderService.GetByIdAsync(id);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Listas todas las ordenes
+        /// </summary>
+        [HttpGet()]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            var result = await _orderService.GetAllOrdersAsync();
+            return Ok(result);
+        }
+
+
     }
 }

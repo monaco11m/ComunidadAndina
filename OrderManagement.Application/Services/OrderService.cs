@@ -2,6 +2,7 @@
 using OrderManagement.Application.Events;
 using OrderManagement.Application.Exceptions;
 using OrderManagement.Application.Interfaces;
+using OrderManagement.Domain.Entities;
 
 namespace OrderManagement.Application.Services
 {
@@ -73,6 +74,31 @@ namespace OrderManagement.Application.Services
                     UnitPrice = i.UnitPrice
                 }).ToList()
             };
+        }
+
+        public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
+        {
+            var orders = await _unitOfWork.Orders.GetAllAsync();
+
+            if (orders == null || !orders.Any())
+                throw new NotFoundException("No orders were found.");
+
+            return orders.Select(order => new OrderDto
+            {
+                Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                CustomerName = order.CustomerName,
+                CustomerEmail = order.CustomerEmail,
+                OrderDate = order.OrderDate,
+                Status = order.Status.ToString(),
+                TotalAmount = order.TotalAmount,
+                Items = order.OrderItems.Select(item => new OrderItemDto
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice
+                }).ToList()
+            });
         }
 
     }

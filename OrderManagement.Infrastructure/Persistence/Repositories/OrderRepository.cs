@@ -24,7 +24,7 @@ namespace OrderManagement.Infrastructure.Persistence.Repositories
             _context.Orders.Remove(order);
         }
 
-        public async Task<IEnumerable<Order>> GetAllAsync(Guid id)
+        public async Task<IEnumerable<Order>> GetAllAsync()
         {
             return await _context.Orders
                .Include(o => o.OrderItems)
