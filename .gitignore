@@ -84,7 +84,6 @@ TestResults/
 # Docker
 docker-compose.override.yml
 **/Dockerfile.*
-**/docker-compose*.yml
 !.dockerignore
 
 # Cache folders

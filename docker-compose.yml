@@ -1,0 +1,57 @@
+services:
+
+  ordermanagement-api:
+    build: .
+    container_name: ordermanagement_api
+    ports:
+      - "5000:5000"
+    depends_on:
+      sqlserver:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+    restart: on-failure
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: ordermanagement_sql
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "YourPassword123!"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - sql_data:/var/opt/mssql
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ordermanagement_rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"        # Puerto AMQP (para la API)
+      - "15672:15672"      # UI de administración (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: ordermanagement_mailhog
+    ports:
+      - "1025:1025"    # SMTP (donde se envían correos)
+      - "8025:8025"    # UI web (http://localhost:8025)
+    restart: unless-stopped
+
+volumes:
+  sql_data:
