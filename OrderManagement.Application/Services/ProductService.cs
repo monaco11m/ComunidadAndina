@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace OrderManagement.Application.Services
 {
-    public class ProductService
+    public class ProductService : IProductService
     {
         private readonly IUnitOfWork _unitOfWork;
         public ProductService(IUnitOfWork unitOfWork)
@@ -17,7 +17,7 @@ namespace OrderManagement.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
+        public async Task<IEnumerable<ProductDto>> GetAllAsync()
         {
             var products = await _unitOfWork.Products.GetAllAsync();
 

@@ -7,7 +7,7 @@ using OrderManagement.Domain.Enums;
 
 namespace OrderManagement.Application.Services
 {
-    public class OrderService
+    public class OrderService : IOrderService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMessagePublisher _publisher;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OrderManagement.Application.Interfaces;
 using OrderManagement.Application.Services;
 
 namespace OrderManagement.API.Controllers
@@ -8,10 +9,10 @@ namespace OrderManagement.API.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly ProductService _productService;
-        public ProductsController(ProductService productService)
+        private readonly IProductService _service;
+        public ProductsController(IProductService productService)
         {
-            _productService = productService;
+            _service = productService;
         }
 
         /// <summary>
@@ -20,7 +21,7 @@ namespace OrderManagement.API.Controllers
         [HttpGet()]
         public async Task<IActionResult> GetAllProducts()
         {
-            var result = await _productService.GetAllProductsAsync();
+            var result = await _service.GetAllAsync();
             return Ok(result);
         }
     }

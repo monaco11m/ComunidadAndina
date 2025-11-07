@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OrderManagement.Application.DTOs;
 using OrderManagement.Application.Exceptions;
+using OrderManagement.Application.Interfaces;
 using OrderManagement.Application.Services;
 
 namespace OrderManagement.API.Controllers
@@ -9,10 +10,10 @@ namespace OrderManagement.API.Controllers
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
-        private readonly OrderService _orderService;
+        private readonly IOrderService _orderService;
         private readonly IValidator<CreateOrderDto> _validator;
 
-        public OrdersController(OrderService orderService, IValidator<CreateOrderDto> validator)
+        public OrdersController(IOrderService orderService, IValidator<CreateOrderDto> validator)
         {
             _orderService = orderService;
             _validator = validator;
